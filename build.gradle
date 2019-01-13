@@ -1,0 +1,58 @@
+buildscript {
+    ext {
+        springBootVersion = '2.1.1.RELEASE'
+        gradleDockerComposeVersion='0.8.12'
+        axonVersion='4.0.3'
+    }
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("com.avast.gradle:gradle-docker-compose-plugin:${gradleDockerComposeVersion}")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'docker-compose'
+
+group = 'de.esserjan.edu.axon'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    set('springBootAdminVersion', '2.1.1')
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'de.codecentric:spring-boot-admin-starter-server'
+    // https://github.com/AxonFramework/AxonFramework/issues/282
+    // runtimeOnly 'org.springframework.boot:spring-boot-devtools'
+    compileOnly 'org.springframework.boot:spring-boot-configuration-processor'
+    compileOnly 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    implementation "org.axonframework:axon-spring-boot-starter:${axonVersion}"
+    implementation "org.axonframework:axon-server-connector:${axonVersion}"
+    testImplementation "org.axonframework:axon-test:${axonVersion}"
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "de.codecentric:spring-boot-admin-dependencies:${springBootAdminVersion}"
+    }
+}
+
+dockerCompose {
+    useComposeFiles = ['docker-compose.yml']
+    startedServices = ['axon-server']
+    isRequiredBy(project.tasks.bootRun)
+}
