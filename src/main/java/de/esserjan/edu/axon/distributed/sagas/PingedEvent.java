@@ -20,7 +20,6 @@ public class PingedEvent {
 
         this.start = command.getNow();
         this.duration = Duration.between(this.start, Instant.now());
-
     }
 
 

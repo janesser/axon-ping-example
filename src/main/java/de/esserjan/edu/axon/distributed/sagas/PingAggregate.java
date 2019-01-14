@@ -4,17 +4,14 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
-import de.esserjan.edu.axon.distributed.query.PingStatsQuery;
-import de.esserjan.edu.axon.distributed.query.PingStatsQueryResult;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventhandling.EventHandler;
-import org.axonframework.eventhandling.SequenceNumber;
 import org.axonframework.modelling.command.AggregateIdentifier;
-import org.axonframework.queryhandling.QueryHandler;
 import org.axonframework.spring.stereotype.Aggregate;
 
 import java.time.Duration;
+import java.util.UUID;
 
 import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 
@@ -23,7 +20,7 @@ import static org.axonframework.modelling.command.AggregateLifecycle.apply;
 public class PingAggregate {
 
     @AggregateIdentifier
-    public final String destination;
+    public final UUID id;
 
     private final Multimap<String, Duration> durationsBySource =
             Multimaps.newMultimap(
@@ -32,24 +29,15 @@ public class PingAggregate {
 
     @CommandHandler
     public PingAggregate(PingCommand command) {
-        this.destination = command.getDestination();
+        this.id = command.getId();
 
         apply(new PingedEvent(command));
     }
 
     @EventHandler
-    public void on(PingedEvent event, @SequenceNumber long seqNr) {
-        log.info("got pinged " + event.getDestination() + " took " + event.getDuration() + " seqNr " + seqNr + ".");
+    public void on(PingedEvent event) {
+        log.info("got pinged " + event.getDestination() + " took " + event.getDuration() + ".");
 
         durationsBySource.put(event.getSource(), event.getDuration());
-    }
-
-    @QueryHandler
-    public PingStatsQueryResult handle(PingStatsQuery query) {
-        return new PingStatsQueryResult(
-                query.getSource(),
-                query.getDestination(),
-                durationsBySource.get(query.getSource())
-        );
     }
 }

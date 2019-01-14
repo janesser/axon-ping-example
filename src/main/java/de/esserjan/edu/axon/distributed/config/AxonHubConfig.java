@@ -26,6 +26,7 @@ public class AxonHubConfig {
         return AxonServerConfiguration.builder()
                 .servers(servers)
                 .clientId(clientId)
+                .componentName(clientId)
                 .build();
     }
 }
