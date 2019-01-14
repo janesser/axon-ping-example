@@ -22,5 +22,7 @@ public class PingedEvent {
         this.duration = Duration.between(this.start, Instant.now());
     }
 
-
+    public String getEdgeId() {
+        return this.source + "_" + this.destination;
+    }
 }
